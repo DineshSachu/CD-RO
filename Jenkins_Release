@@ -1,0 +1,70 @@
+#!groovy
+
+def gitInfo = {}
+
+pipeline {
+    agent any
+
+    tools{
+        jdk 'OpenJDK11'
+    }
+
+    options{
+        skipDefaultCheckout()
+    }
+
+    stages {
+        stage('checkout') {
+            steps {
+                script {
+                    gitInfo = checkout scm
+                    echo "$gitInfo.GIT_COMMIT"
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh "${tool name: 'gradle5.0', type: 'hudson.plugins.gradle.GradleInstallation'}/bin/gradle --no-daemon clean build"
+            }
+        }
+
+        stage('Deploy application ') {
+            steps {
+                script {
+                    BuildNumber = "$BUILD_NUMBER"
+                    echo "BuildNumber: ${BuildNumber}"
+
+                    sh "scp -r /home/lab/.jenkins/workspace/dinesh-Demo/Bee/build/libs/Bee.war mars@192.168.0.116:/home/mars/apps/Bee-${BuildNumber}.war"
+
+
+                    BuildUrl = "$BUILD_URL"
+                    //echo "BuildUrl: ${BuildUrl}"
+
+                }
+            }
+
+        }
+
+
+        stage('Build Info') {
+            steps {
+                script {
+                    def checkSumTxt = sha1 "build/distributions/Bee-${BuildNumber}.war"
+
+                    sh "echo ' {\"buildnumber\":\"${BuildNumber}\"' > bee.txt"
+                    sh "echo ' ,\"buildurl\":\"${BuildUrl}\"}' >> bee.txt"
+                }
+            }
+        }
+
+
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'bee.txt', onlyIfSuccessful: true
+        }
+    }
+
+}
