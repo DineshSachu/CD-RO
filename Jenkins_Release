@@ -35,7 +35,7 @@ pipeline {
                     BuildNumber = "$BUILD_NUMBER"
                     echo "BuildNumber: ${BuildNumber}"
 
-                    sh "scp -r /home/lab/.jenkins/workspace/dinesh-Demo/CD-RO/build/libs/Bee.war mars@192.168.0.116:/home/mars/apps/Bee-${BuildNumber}.war"
+                    sh "scp -r /home/lab/.jenkins/workspace/dinesh-Demo/CD-RO/build/libs/Bee.war mars@192.168.0.116:/home/mars/apps/Bee/Bee-${BuildNumber}.war"
 
 
                     BuildUrl = "$BUILD_URL"
